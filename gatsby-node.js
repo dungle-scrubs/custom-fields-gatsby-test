@@ -14,6 +14,7 @@ exports.onCreateNode = async ({
     createContentDigest,
     getCache,
 }) => {
+        console.log("node", node);
 
     if(node?.internal?.type === "ShopifyProductMetafield"){
         // console.log("node", node);
@@ -37,7 +38,7 @@ exports.onCreateNode = async ({
                     if (fileNode) {
                         images.push({
                             alt: altText,
-                            url: imgUrl,
+                            originalSrc: imgUrl,
                             localFile___NODE : fileNode.id
                         })
                     }
@@ -56,7 +57,7 @@ exports.onCreateNode = async ({
                         parent: null,
                         children: [],
                         internal: {
-                          type: `bonifyFields`,
+                          type: `BonifyMetafield`,
                           content: JSON.stringify(content),
                           contentDigest: createContentDigest(content),
                         },
@@ -84,7 +85,7 @@ exports.onCreateNode = async ({
                         if (fileNode) {
                             images.push({
                                 alt: null,
-                                url: value,
+                                originalSrc: value,
                                 localFile___NODE : fileNode.id
                             })
                         }
@@ -103,7 +104,7 @@ exports.onCreateNode = async ({
                             parent: null,
                             children: [],
                             internal: {
-                            type: `bonifyFields`,
+                            type: `BonifyMetafield`,
                             content: JSON.stringify(content),
                             contentDigest: createContentDigest(content),
                             },
@@ -144,7 +145,7 @@ exports.onCreateNode = async ({
                                             images.push({
                                                 key: parsedItem,
                                                 alt: altText,
-                                                url: imgUrl,
+                                                originalSrc: imgUrl,
                                                 localFile___NODE : fileNode.id
                                             })
                                         }
@@ -163,7 +164,7 @@ exports.onCreateNode = async ({
                                             parent: null,
                                             children: [],
                                             internal: {
-                                            type: `bonifyFields`,
+                                            type: `BonifyMetafield`,
                                             content: JSON.stringify(content),
                                             contentDigest: createContentDigest(content),
                                             },
@@ -190,7 +191,7 @@ exports.onCreateNode = async ({
                                             images.push({
                                                 key: parsedItem,
                                                 alt: null,
-                                                url: imgUrl,
+                                                originalSrc: imgUrl,
                                                 localFile___NODE : fileNode.id
                                             })
                                         }
@@ -209,7 +210,7 @@ exports.onCreateNode = async ({
                                             parent: null,
                                             children: [],
                                             internal: {
-                                            type: `bonifyFields`,
+                                            type: `BonifyMetafield`,
                                             content: JSON.stringify(content),
                                             contentDigest: createContentDigest(content),
                                             },
@@ -237,7 +238,7 @@ exports.onCreateNode = async ({
                                                 images.push({
                                                     key: parsedItem,
                                                     alt: null,
-                                                    url: parsedLevelDeepItem[propertyLevelItem],
+                                                    originalSrc: parsedLevelDeepItem[propertyLevelItem],
                                                     localFile___NODE : fileNode.id
                                                 })
                                             }
@@ -256,7 +257,7 @@ exports.onCreateNode = async ({
                                                 parent: null,
                                                 children: [],
                                                 internal: {
-                                                type: `bonifyFields`,
+                                                type: `BonifyMetafield`,
                                                 content: JSON.stringify(content),
                                                 contentDigest: createContentDigest(content),
                                                 },
@@ -292,7 +293,7 @@ exports.onCreateNode = async ({
                                     images.push({
                                         key: parsedItem,
                                         alt: altText,
-                                        url: imgUrl,
+                                        originalSrc: imgUrl,
                                         localFile___NODE : fileNode.id
                                     })
                                 }
@@ -311,7 +312,7 @@ exports.onCreateNode = async ({
                                     parent: null,
                                     children: [],
                                     internal: {
-                                    type: `bonifyFields`,
+                                    type: `BonifyMetafield`,
                                     content: JSON.stringify(content),
                                     contentDigest: createContentDigest(content),
                                     },
@@ -338,7 +339,7 @@ exports.onCreateNode = async ({
                                     images.push({
                                         key: parsedItem,
                                         alt: null,
-                                        url: imgUrl,
+                                        originalSrc: imgUrl,
                                         localFile___NODE : fileNode.id
                                     })
                                 }
@@ -357,7 +358,7 @@ exports.onCreateNode = async ({
                                     parent: null,
                                     children: [],
                                     internal: {
-                                    type: `bonifyFields`,
+                                    type: `BonifyMetafield`,
                                     content: JSON.stringify(content),
                                     contentDigest: createContentDigest(content),
                                     },
@@ -385,7 +386,7 @@ exports.onCreateNode = async ({
                                         images.push({
                                             key: parsedItem,
                                             alt: null,
-                                            url: parsedItem[propertyItem],
+                                            originalSrc: parsedItem[propertyItem],
                                             localFile___NODE : fileNode.id
                                         })
                                     }
@@ -404,7 +405,7 @@ exports.onCreateNode = async ({
                                         parent: null,
                                         children: [],
                                         internal: {
-                                        type: `bonifyFields`,
+                                        type: `BonifyMetafield`,
                                         content: JSON.stringify(content),
                                         contentDigest: createContentDigest(content),
                                         },
