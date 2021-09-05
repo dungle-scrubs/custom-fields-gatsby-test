@@ -7,260 +7,420 @@
 // You can delete this file if you're not using it
 const { createRemoteFileNode } = require(`gatsby-source-filesystem`)
 
-// const path = require("path")
-
-// const query = `
-// {
-//   allShopifyProduct {
-//     edges {
-//       node {
-//         id
-//         handle
-//       }
-//     }
-//   }
-// }
-// `
-// exports.createPages = async ({ graphql, actions }) => {
-//   const { createPage } = actions
-
-//   const res = await graphql(query)
-//   res.data.allShopifyProduct.edges.map(edge => {
-//       console.log("edge ", edge)
-//     createPage({
-//       path: `/shop/${edge.node.handle}/`,
-//       component: path.resolve("./src/templates/product.js"),
-//       context: {
-//         id: edge.node.id,
-//       },
-//     })
-//   })
-// }
-
 exports.onCreateNode = async ({
     node, // the node that was just created
-    actions: { createNode},
+    actions: { createNode, createParentChildLink},
     createNodeId,
-    getNode,
+    createContentDigest,
     getCache,
 }) => {
+
     if(node?.internal?.type === "ShopifyProductMetafield"){
-        if(node?.key === "single-image"){
-            if(node?.value && node?.value !== null){
-                const imgUrl = node?.value.split('"')[1];
-                const altText = node?.value.split('"')[3] || null;
-                const fileNode = await createRemoteFileNode({
-                    url: imgUrl,
-                    parentNodeId: node.id,
-                    createNode,
-                    createNodeId,
-                    getCache,
-                })
-    
-                node.images= [];
-    
-                if (fileNode) {
-                    node.images.push({
-                        subfield: "single-image",
-                        alt: altText,
-                        url: imgUrl,
-                        localFile___NODE : fileNode.id
-                    })
-                }
-            }
+        // console.log("node", node);
+        if(node?.namespace === "custom_fields" && node?.valueType === "string"){
+            const value = node?.value;
+            if(value && value !== null && /(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)/g.test(value)){
 
-        }
-        else if(node?.key === "image-repeater"){
-            const repeater_image = JSON.parse(node?.value);
-            node.images= [];
-            repeater_image.forEach(async (repeat_img) => {
-                const imgUrl = repeat_img["image-repeater"].split('"')[1];
-                const altText = repeat_img["image-repeater"].split('"')[3] || null;
-                const fileNode = await createRemoteFileNode({
-                    url: imgUrl,
-                    parentNodeId: node.id,
-                    createNode,
-                    createNodeId,
-                    getCache,
-                })
-
-                if (fileNode) {
-                    node.images.push({
-                        subfield: "image-repeater",
-                        alt: altText,
-                        url: imgUrl,
-                        localFile___NODE : fileNode.id
-                    })
-                }
-            });
-        }
-        else if(node?.key === "repeater-with-some-images"){
-            const repeater_image = JSON.parse(node?.value);
-            node.images = [];
-            repeater_image.forEach(async (repeat_img) => {
-                const imgUrl = repeat_img["image"].split('"')[1];
-                const altText = repeat_img["image"].split('"')[3] || null;
-                const fileNode = await createRemoteFileNode({
-                    url: imgUrl,
-                    parentNodeId: node.id,
-                    createNode,
-                    createNodeId,
-                    getCache,
-                })
-
-                if (fileNode) {
-                    node.images.push({
-                        subfield: "image",
-                        alt: altText,
-                        url: imgUrl,
-                        localFile___NODE : fileNode.id
-                    })
-                }
-            });
-        }
-        else if(node?.key === "three-level-repeater"){
-            const repeater_image = JSON.parse(node?.value);
-            node.images = [];
-
-            repeater_image.forEach(async (repeat_img) => {
-                if(repeat_img["level-two-repeater"] && repeat_img["level-two-repeater"] !== null){
-                    repeat_img["level-two-repeater"].forEach(async (repeat) => {
-                        let imgUrl;
-                        let fileNode;
-                        let altText;
-                        if(repeat["lvl-3-image-1"] && repeat["lvl-3-image-1"] !== null){
-                            imgUrl = repeat["lvl-3-image-1"].split('"')[1];
-                            altText = repeat["lvl-3-image-1"].split('"')[3] || null;
-                            fileNode = await createRemoteFileNode({
-                                url: imgUrl,
-                                parentNodeId: node.id,
-                                createNode,
-                                createNodeId,
-                                getCache,
-                            })
-            
-                            if (fileNode) {
-                                node.images.push({
-                                    subfield: "lvl-3-image-1",
-                                    alt: altText,
-                                    url: imgUrl,
-                                    localFile___NODE : fileNode.id
-                                })
-                            }
-                        }
-
-                        if(repeat["lvl-3-image-2"] && repeat["lvl-3-image-2"] !== null){
-                            imgUrl = repeat["lvl-3-image-2"].split('"')[1];
-                            altText = repeat["lvl-3-image-2"].split('"')[3] || null;
-                            fileNode = await createRemoteFileNode({
-                                url: imgUrl,
-                                parentNodeId: node.id,
-                                createNode,
-                                createNodeId,
-                                getCache,
-                            })
-            
-                            if (fileNode) {
-                                node.images.push({
-                                    subfield: "lvl-3-image-2",
-                                    alt: altText,
-                                    url: imgUrl,
-                                    localFile___NODE : fileNode.id
-                                })
-                            }
-                        }
-
-                    })
-                }
-
-                let imgUrl;
-                let fileNode;
-                let altText;
-                if(repeat_img["lvl-2-image-1"] && repeat_img["lvl-2-image-1"] !== null){
-                    imgUrl = repeat_img["lvl-2-image-1"].split('"')[1];
-                    altText = repeat_img["lvl-2-image-1"].split('"')[3] || null;
-                    fileNode = await createRemoteFileNode({
+                if(value.includes("<img")){
+                    const imgUrl = value.split('"')[1];
+                    const altText = value.split('"')[3] || null;
+                    const fileNode = await createRemoteFileNode({
                         url: imgUrl,
                         parentNodeId: node.id,
                         createNode,
                         createNodeId,
                         getCache,
                     })
-    
+        
+                    let images= [];
+
                     if (fileNode) {
-                        node.images.push({
-                            subfield: "lvl-2-image-1",
+                        images.push({
                             alt: altText,
                             url: imgUrl,
                             localFile___NODE : fileNode.id
                         })
                     }
-                }
-
-                if(repeat_img["lvl-2-image-2"] && repeat_img["lvl-2-image-2"] !== null){
-                    imgUrl = repeat_img["lvl-2-image-2"].split('"')[1];
-                    altText = repeat_img["lvl-2-image-2"].split('"')[3] || null;
-                    fileNode = await createRemoteFileNode({
-                        url: imgUrl,
-                        parentNodeId: node.id,
-                        createNode,
-                        createNodeId,
-                        getCache,
-                    })
     
-                    if (fileNode) {
-                        node.images.push({
-                            subfield: "lvl-2-image-2",
-                            alt: altText,
-                            url: imgUrl,
-                            localFile___NODE : fileNode.id
+                    const content = {
+                        key: node.key,
+                        value: node.value,
+                        valueType: node.valueType,
+                        namespace: node.namespace,
+                        images,
+                        type: node.type
+                    }
+                    const childNode = createNode({
+                        id: createNodeId(`my-data-${node.id}`),
+                        ...content,
+                        parent: null,
+                        children: [],
+                        internal: {
+                          type: `bonifyFields`,
+                          content: JSON.stringify(content),
+                          contentDigest: createContentDigest(content),
+                        },
+                    });
+    
+                    createParentChildLink({ parent: node, child: childNode })
+
+    
+                    node.bonifyFields___NODE = createNodeId(`my-data-${node.id}`)
+    
+                }
+                else {
+
+                    if(value && value !== null){
+                        fileNode = await createRemoteFileNode({
+                            url: value,
+                            parentNodeId: node.id,
+                            createNode,
+                            createNodeId,
+                            getCache,
                         })
+
+                        let images= [];
+
+                        if (fileNode) {
+                            images.push({
+                                alt: null,
+                                url: value,
+                                localFile___NODE : fileNode.id
+                            })
+                        }
+        
+                        const content = {
+                            key: node.key,
+                            value: node.value,
+                            valueType: node.valueType,
+                            namespace: node.namespace,
+                            images,
+                            type: node.type
+                        }
+                        const childNode = createNode({
+                            id: createNodeId(`my-data-${node.id}`),
+                            ...content,
+                            parent: null,
+                            children: [],
+                            internal: {
+                            type: `bonifyFields`,
+                            content: JSON.stringify(content),
+                            contentDigest: createContentDigest(content),
+                            },
+                        });
+        
+                        createParentChildLink({ parent: node, child: childNode })
+        
+        
+                        node.bonifyFields___NODE = createNodeId(`my-data-${node.id}`)
                     }
                 }
 
-                if(repeat_img["lvl-2-image-no-alt"] && repeat_img["lvl-2-image-no-alt"] !== null){
-                    imgUrl = repeat_img["lvl-2-image-no-alt"];
-                    fileNode = await createRemoteFileNode({
-                        url: imgUrl,
-                        parentNodeId: node.id,
-                        createNode,
-                        createNodeId,
-                        getCache,
-                    })
-    
-                    if (fileNode) {
-                        node.images.push({
-                            subfield: "lvl-2-image-no-alt",
-                            alt: null,
-                            url: imgUrl,
-                            localFile___NODE : fileNode.id
-                        })
-                    }
-                }
-
-            });
-        }
-        else if(node?.key === "image-no-alt"){
-            node.images= [];
-            imgUrl = node?.value;
-            if(imgUrl && imgUrl !== null){
-                fileNode = await createRemoteFileNode({
-                    url: imgUrl,
-                    parentNodeId: node.id,
-                    createNode,
-                    createNodeId,
-                    getCache,
-                })
-    
-                if (fileNode) {
-                    node.images.push({
-                        subfield: "image-no-alt",
-                        alt: null,
-                        url: imgUrl,
-                        localFile___NODE : fileNode.id
-                    })
-                }
             }
+
+        }
+        else if(node?.namespace === "custom_fields" && node?.valueType === "json_string"){
+            const jsonParsedArray = JSON.parse(node?.value);
+            let images= [];
+            jsonParsedArray.forEach(async (parsedItem) => {
+                for (const propertyItem in parsedItem) {
+                    if(parsedItem[propertyItem] && Array.isArray(parsedItem[propertyItem])){
+                        parsedItem[propertyItem].forEach(async (parsedLevelDeepItem) => {
+                            for (const propertyLevelItem in parsedLevelDeepItem) {
+                                if(/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)/g.test(parsedLevelDeepItem[propertyLevelItem])){
+
+                                    if(parsedLevelDeepItem[propertyLevelItem].includes("<img")){
+                                        const imgUrl = parsedLevelDeepItem[propertyLevelItem].split('"')[1];
+                                        const altText = parsedLevelDeepItem[propertyLevelItem].split('"')[3] || null;
+                                        const fileNode = await createRemoteFileNode({
+                                            url: imgUrl,
+                                            parentNodeId: node.id,
+                                            createNode,
+                                            createNodeId,
+                                            getCache,
+                                        })
+        
+                                        if (fileNode) {
+                                            images.push({
+                                                key: parsedItem,
+                                                alt: altText,
+                                                url: imgUrl,
+                                                localFile___NODE : fileNode.id
+                                            })
+                                        }
+                        
+                                        const content = {
+                                            key: node.key,
+                                            value: node.value,
+                                            valueType: node.valueType,
+                                            namespace: node.namespace,
+                                            images,
+                                            type: node.type
+                                        }
+                                        const childNode = createNode({
+                                            id: createNodeId(`my-data-${node.id}`),
+                                            ...content,
+                                            parent: null,
+                                            children: [],
+                                            internal: {
+                                            type: `bonifyFields`,
+                                            content: JSON.stringify(content),
+                                            contentDigest: createContentDigest(content),
+                                            },
+                                        });
+                        
+                                        createParentChildLink({ parent: node, child: childNode })
+                        
+            
+                        
+                                        node.bonifyFields___NODE = createNodeId(`my-data-${node.id}`)
+                        
+                                    }
+                                    else if(parsedLevelDeepItem[propertyLevelItem].includes("<a")){
+                                        const imgUrl = parsedLevelDeepItem[propertyLevelItem].split('"')[1];
+                                        const fileNode = await createRemoteFileNode({
+                                            url: imgUrl,
+                                            parentNodeId: node.id,
+                                            createNode,
+                                            createNodeId,
+                                            getCache,
+                                        })
+        
+                                        if (fileNode) {
+                                            images.push({
+                                                key: parsedItem,
+                                                alt: null,
+                                                url: imgUrl,
+                                                localFile___NODE : fileNode.id
+                                            })
+                                        }
+                        
+                                        const content = {
+                                            key: node.key,
+                                            value: node.value,
+                                            valueType: node.valueType,
+                                            namespace: node.namespace,
+                                            images,
+                                            type: node.type
+                                        }
+                                        const childNode = createNode({
+                                            id: createNodeId(`my-data-${node.id}`),
+                                            ...content,
+                                            parent: null,
+                                            children: [],
+                                            internal: {
+                                            type: `bonifyFields`,
+                                            content: JSON.stringify(content),
+                                            contentDigest: createContentDigest(content),
+                                            },
+                                        });
+                        
+                                        createParentChildLink({ parent: node, child: childNode })
+                        
+            
+                        
+                                        node.bonifyFields___NODE = createNodeId(`my-data-${node.id}`)
+                        
+                                    }
+                                    else{
+        
+                                        if(parsedLevelDeepItem[propertyLevelItem] && parsedLevelDeepItem[propertyLevelItem] !== null){
+                                            fileNode = await createRemoteFileNode({
+                                                url: parsedLevelDeepItem[propertyLevelItem],
+                                                parentNodeId: node.id,
+                                                createNode,
+                                                createNodeId,
+                                                getCache,
+                                            })
+                    
+                                            if (fileNode) {
+                                                images.push({
+                                                    key: parsedItem,
+                                                    alt: null,
+                                                    url: parsedLevelDeepItem[propertyLevelItem],
+                                                    localFile___NODE : fileNode.id
+                                                })
+                                            }
+                            
+                                            const content = {
+                                                key: node.key,
+                                                value: node.value,
+                                                valueType: node.valueType,
+                                                namespace: node.namespace,
+                                                images,
+                                                type: node.type
+                                            }
+                                            const childNode = createNode({
+                                                id: createNodeId(`my-data-${node.id}`),
+                                                ...content,
+                                                parent: null,
+                                                children: [],
+                                                internal: {
+                                                type: `bonifyFields`,
+                                                content: JSON.stringify(content),
+                                                contentDigest: createContentDigest(content),
+                                                },
+                                            });
+                            
+                                            createParentChildLink({ parent: node, child: childNode })
+                            
+                
+                            
+                                            node.bonifyFields___NODE = createNodeId(`my-data-${node.id}`)
+                                        }
+                                    }
+                                }
+                            }
+                        })
+                    }
+                    else if(parsedItem[propertyItem] && parsedItem[propertyItem].substring(0, 1) !== "["){
+
+                        if(/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)/g.test(parsedItem[propertyItem])){
+
+                            if(parsedItem[propertyItem].includes("<img")){
+                                const imgUrl = parsedItem[propertyItem].split('"')[1];
+                                const altText = parsedItem[propertyItem].split('"')[3] || null;
+                                const fileNode = await createRemoteFileNode({
+                                    url: imgUrl,
+                                    parentNodeId: node.id,
+                                    createNode,
+                                    createNodeId,
+                                    getCache,
+                                })
+
+                                if (fileNode) {
+                                    images.push({
+                                        key: parsedItem,
+                                        alt: altText,
+                                        url: imgUrl,
+                                        localFile___NODE : fileNode.id
+                                    })
+                                }
+                
+                                const content = {
+                                    key: node.key,
+                                    value: node.value,
+                                    valueType: node.valueType,
+                                    namespace: node.namespace,
+                                    images,
+                                    type: node.type
+                                }
+                                const childNode = createNode({
+                                    id: createNodeId(`my-data-${node.id}`),
+                                    ...content,
+                                    parent: null,
+                                    children: [],
+                                    internal: {
+                                    type: `bonifyFields`,
+                                    content: JSON.stringify(content),
+                                    contentDigest: createContentDigest(content),
+                                    },
+                                });
+                
+                                createParentChildLink({ parent: node, child: childNode })
+                
+    
+                
+                                node.bonifyFields___NODE = createNodeId(`my-data-${node.id}`)
+                
+                            }
+                            else if(parsedItem[propertyItem].includes("<a")){
+                                const imgUrl = parsedItem[propertyItem].split('"')[1];
+                                const fileNode = await createRemoteFileNode({
+                                    url: imgUrl,
+                                    parentNodeId: node.id,
+                                    createNode,
+                                    createNodeId,
+                                    getCache,
+                                })
+
+                                if (fileNode) {
+                                    images.push({
+                                        key: parsedItem,
+                                        alt: null,
+                                        url: imgUrl,
+                                        localFile___NODE : fileNode.id
+                                    })
+                                }
+                
+                                const content = {
+                                    key: node.key,
+                                    value: node.value,
+                                    valueType: node.valueType,
+                                    namespace: node.namespace,
+                                    images,
+                                    type: node.type
+                                }
+                                const childNode = createNode({
+                                    id: createNodeId(`my-data-${node.id}`),
+                                    ...content,
+                                    parent: null,
+                                    children: [],
+                                    internal: {
+                                    type: `bonifyFields`,
+                                    content: JSON.stringify(content),
+                                    contentDigest: createContentDigest(content),
+                                    },
+                                });
+                
+                                createParentChildLink({ parent: node, child: childNode })
+                
+    
+                
+                                node.bonifyFields___NODE = createNodeId(`my-data-${node.id}`)
+                
+                            }
+                            else{
+
+                                if(parsedItem[propertyItem] && parsedItem[propertyItem] !== null){
+                                    fileNode = await createRemoteFileNode({
+                                        url: parsedItem[propertyItem],
+                                        parentNodeId: node.id,
+                                        createNode,
+                                        createNodeId,
+                                        getCache,
+                                    })
+            
+                                    if (fileNode) {
+                                        images.push({
+                                            key: parsedItem,
+                                            alt: null,
+                                            url: parsedItem[propertyItem],
+                                            localFile___NODE : fileNode.id
+                                        })
+                                    }
+                    
+                                    const content = {
+                                        key: node.key,
+                                        value: node.value,
+                                        valueType: node.valueType,
+                                        namespace: node.namespace,
+                                        images,
+                                        type: node.type
+                                    }
+                                    const childNode = createNode({
+                                        id: createNodeId(`my-data-${node.id}`),
+                                        ...content,
+                                        parent: null,
+                                        children: [],
+                                        internal: {
+                                        type: `bonifyFields`,
+                                        content: JSON.stringify(content),
+                                        contentDigest: createContentDigest(content),
+                                        },
+                                    });
+                    
+                                    createParentChildLink({ parent: node, child: childNode })
+                    
+        
+                    
+                                    node.bonifyFields___NODE = createNodeId(`my-data-${node.id}`)
+                                }
+                            }
+                        }
+                    }
+                }
+            })
         }
     }
 }
